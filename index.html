@@ -1,0 +1,346 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Evora Parts Register</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wght@500;700;800&family=Source+Serif+4:opsz,wght@8..60,400;8..60,600&family=IBM+Plex+Mono:wght@400;500&display=swap" media="print" onload="this.media='all'">
+<style>
+body { margin: 0; }
+/* Layout: workshop parts register — header strip, model filter bar, keys, one wide register table that scrolls inside its own frame */
+:root {
+  --bg: #f6f7f5;
+  --panel: #ffffff;
+  --ink: #18201c;
+  --muted: #5d6862;
+  --rule: #d8ddd9;
+  --accent: #1d5c3f;
+  --ok-bg: #e3f1e8; --ok-fg: #1d5c3f;
+  --lik-bg: #e4eef6; --lik-fg: #1f4f7a;
+  --warn-bg: #fbf0d6; --warn-fg: #7a5200;
+  --unk-bg: #eceeed; --unk-fg: #4a534e;
+  --no-bg: #f6e1df; --no-fg: #8a2b22;
+  --hl: #f0f6f2;
+  --display: "Archivo", "Helvetica Neue", Arial, sans-serif;
+  --body: "Source Serif 4", Georgia, serif;
+  --mono: "IBM Plex Mono", ui-monospace, Menlo, monospace;
+}
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) {
+  --bg: #121614; --panel: #1a201d; --ink: #e6ebe8; --muted: #9aa69f; --rule: #2f3833; --accent: #6fc396;
+  --ok-bg: #1f3a2b; --ok-fg: #9fdcb9; --lik-bg: #1d2f40; --lik-fg: #9cc6ea; --warn-bg: #3d3115; --warn-fg: #f0cd7a;
+  --unk-bg: #2a312d; --unk-fg: #c2cbc6; --no-bg: #3e2220; --no-fg: #f0a59c; --hl: #1f2924;
+  color-scheme: dark } }
+:root[data-theme="dark"] {
+  --bg: #121614; --panel: #1a201d; --ink: #e6ebe8; --muted: #9aa69f; --rule: #2f3833; --accent: #6fc396;
+  --ok-bg: #1f3a2b; --ok-fg: #9fdcb9; --lik-bg: #1d2f40; --lik-fg: #9cc6ea; --warn-bg: #3d3115; --warn-fg: #f0cd7a;
+  --unk-bg: #2a312d; --unk-fg: #c2cbc6; --no-bg: #3e2220; --no-fg: #f0a59c; --hl: #1f2924;
+  color-scheme: dark }
+
+body { background: var(--bg); color: var(--ink); font-family: var(--body); font-size: 15px; line-height: 1.5; }
+.wrap { max-width: 1280px; margin: 0 auto; padding-block: 32px 48px;
+  padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px));
+  display: grid; gap: 20px; }
+header { display: grid; gap: 6px; border-bottom: 3px solid var(--accent); padding-bottom: 16px; }
+.eyebrow { font-family: var(--mono); font-size: 12px; letter-spacing: .08em; text-transform: uppercase; color: var(--muted); }
+h1 { font-family: var(--display); font-weight: 800; font-size: clamp(26px, 4vw, 36px); margin: 0; letter-spacing: -.01em; text-wrap: balance; }
+.lede { margin: 0; max-width: 72ch; color: var(--muted); }
+
+.filters { display: flex; flex-wrap: wrap; gap: 12px 24px; align-items: end; background: var(--panel); border: 1px solid var(--rule); border-radius: 6px; padding: 14px 16px; }
+.field { display: grid; gap: 4px; min-width: 0; }
+.field label.lbl, .field legend { font-family: var(--display); font-weight: 700; font-size: 11.5px; letter-spacing: .07em; text-transform: uppercase; color: var(--muted); padding: 0; }
+select { font: 15px var(--body); color: var(--ink); background: var(--bg); border: 1px solid var(--rule); border-radius: 4px; padding: 7px 10px; max-width: 100%; }
+select:focus-visible, input:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+fieldset { border: 0; margin: 0; padding: 0; display: grid; gap: 4px; }
+fieldset:disabled { opacity: .5; }
+.radios { display: flex; flex-wrap: wrap; gap: 6px 16px; font-size: 14px; }
+.radios label, .check { display: flex; gap: 6px; align-items: center; cursor: pointer; font-size: 14px; }
+input[type=radio], input[type=checkbox] { accent-color: var(--accent); }
+.count { margin-left: auto; font-family: var(--mono); font-size: 13px; color: var(--muted); }
+
+.keys { display: grid; gap: 8px; font-size: 13px; color: var(--muted); }
+.legend { display: flex; flex-wrap: wrap; gap: 8px 18px; align-items: center; }
+.legend b { font-family: var(--display); font-size: 11.5px; letter-spacing: .07em; text-transform: uppercase; color: var(--ink); min-width: 120px; }
+
+.frame { background: var(--panel); border: 1px solid var(--rule); border-radius: 6px; overflow-x: auto; }
+table { border-collapse: collapse; width: 100%; min-width: 1500px; font-size: 14px; }
+th, td { text-align: left; vertical-align: top; padding: 12px 14px; border-bottom: 1px solid var(--rule); }
+th { font-family: var(--display); font-weight: 700; font-size: 11px; letter-spacing: .07em; text-transform: uppercase; color: var(--muted); background: var(--bg); position: sticky; top: 0; }
+tbody tr:last-child td { border-bottom: 0; }
+tr.noalt td { background: color-mix(in srgb, var(--no-bg) 35%, transparent); }
+.pn { font-family: var(--mono); font-size: 13px; font-weight: 500; color: var(--accent); white-space: nowrap; display: block; }
+.pn.none { color: var(--muted); font-weight: 400; font-style: italic; font-family: var(--body); font-size: 13.5px; white-space: normal; }
+.name { font-weight: 600; }
+.sub { font-size: 12.5px; color: var(--muted); display: block; margin-top: 2px; }
+.pill { display: inline-block; font-family: var(--display); font-weight: 700; font-size: 11px; letter-spacing: .04em; text-transform: uppercase; padding: 3px 9px; border-radius: 999px; white-space: nowrap; }
+.ok { background: var(--ok-bg); color: var(--ok-fg); }
+.lik { background: var(--lik-bg); color: var(--lik-fg); }
+.warn { background: var(--warn-bg); color: var(--warn-fg); }
+.unk { background: var(--unk-bg); color: var(--unk-fg); }
+.no { background: var(--no-bg); color: var(--no-fg); }
+.models { list-style: none; margin: 0; padding: 0; display: grid; gap: 2px; min-width: 205px; }
+.models li { display: flex; justify-content: space-between; gap: 8px; align-items: center; font-size: 12.5px; padding: 1px 4px; border-radius: 3px; }
+.models li.sel { background: var(--hl); font-weight: 600; outline: 1px solid var(--rule); }
+.models .pill { font-size: 9.5px; padding: 2px 6px; }
+.noalt-note { font-size: 13px; color: var(--muted); }
+td ul.ev { margin: 0; padding-left: 16px; display: grid; gap: 3px; min-width: 260px; }
+a { color: var(--accent); text-underline-offset: 2px; }
+a:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+.empty td { text-align: center; color: var(--muted); padding: 32px 16px; }
+.notes { display: grid; gap: 8px; max-width: 78ch; font-size: 14px; color: var(--muted); }
+.notes h2 { font-family: var(--display); font-size: 14px; letter-spacing: .06em; text-transform: uppercase; color: var(--ink); margin: 0; }
+.notes p, .notes ul { margin: 0; }
+.notes ul { padding-left: 18px; display: grid; gap: 4px; }
+
+.status { display: flex; flex-wrap: wrap; gap: 6px 12px; align-items: center; font-size: 13px; color: var(--muted); }
+.status .dot { width: 8px; height: 8px; border-radius: 50%; background: var(--ok-fg); display: inline-block; }
+.status.stale .dot { background: var(--warn-fg); }
+tr.cat td { background: var(--bg); font-family: var(--display); font-weight: 800; font-size: 12px; letter-spacing: .08em; text-transform: uppercase; color: var(--accent); padding: 10px 14px; position: static; }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <span class="eyebrow">Lotus Evora · <span id="total">0</span> entries · from owner forums</span>
+    <h1>Evora Parts Register</h1>
+    <p class="lede">Known replacements for original Lotus parts, as reported by owners on The Lotus Forums. Each entry states how confident we are that it fits, model by model. Parts that owners went looking for and couldn't replace are listed too.</p>
+    <div class="status" id="status" role="status"><span class="dot"></span><span id="statusText">Loading the register…</span></div>
+  </header>
+
+  <div class="filters" role="search">
+    <div class="field">
+      <label class="lbl" for="model">Your model</label>
+      <select id="model"></select>
+    </div>
+    <fieldset class="field" id="levelset">
+      <legend>Show alternatives that are</legend>
+      <div class="radios">
+        <label><input type="radio" name="level" id="lvl-confirmed" value="confirmed"> Owner-confirmed</label>
+        <label><input type="radio" name="level" id="lvl-evidence" value="evidence"> Confirmed, likely or listed</label>
+        <label><input type="radio" name="level" id="lvl-all" value="all" checked> Any status</label>
+      </div>
+    </fieldset>
+    <label class="check"><input type="checkbox" id="shownoalt" checked> Include parts with no known alternative</label>
+    <span class="count" id="count" aria-live="polite"></span>
+  </div>
+
+  <div class="keys">
+    <div class="legend"><b>Fit by model</b>
+      <span><span class="pill ok">Confirmed</span> An owner fitted it to this model</span>
+      <span><span class="pill lik">Likely</span> Fitted by an owner whose variant wasn't stated, or matched by part cross-reference</span>
+      <span><span class="pill warn">Listed</span> Supplier says it fits; no owner report</span>
+      <span><span class="pill unk">Unknown</span> No information</span>
+    </div>
+    <div class="legend"><b>Fit status</b>
+      <span><span class="pill ok">Direct fit</span> Identical or drop-in</span>
+      <span><span class="pill warn">Fits with mods</span> Fitted with small changes</span>
+      <span><span class="pill unk">Unverified</span> Suggested, not yet confirmed</span>
+      <span><span class="pill no">No known alternative</span> Owners searched; nothing found</span>
+    </div>
+  </div>
+
+  <div class="frame">
+    <table>
+      <thead>
+        <tr>
+          <th scope="col">Lotus part number</th>
+          <th scope="col">Part description</th>
+          <th scope="col">Part number check</th>
+          <th scope="col">Part number notes</th>
+          <th scope="col">Known alternative</th>
+          <th scope="col">Fit by model</th>
+          <th scope="col">Fit status</th>
+          <th scope="col">Owner evidence</th>
+          <th scope="col">Source</th>
+        </tr>
+      </thead>
+      <tbody id="rows"><tr class="empty"><td colspan="9">Loading the register…</td></tr></tbody>
+    </table>
+  </div>
+
+  <section class="notes">
+    <h2>How to read this register</h2>
+    <ul>
+      <li>Everything here is what owners reported on the forum. Nothing has been tested by us. Check fitment with a specialist before buying.</li>
+      <li>"Not stated" in the part number column means the thread never gave the Lotus number. Those numbers are still to be found.</li>
+      <li>Several alternatives come from one owner's single post. Those are marked Unverified until someone else confirms them.</li>
+      <li>Rows marked No known alternative still name any workaround owners used, such as repairing the original or finding used stock.</li>
+    </ul>
+    <h2>Sources</h2>
+    <p>Threads on The Lotus Forums were read in full. LotusTalk blocks automated reading, so rows tagged <span class="pill unk">Excerpt only</span> come from search-engine excerpts of LotusTalk pages; check the full thread before relying on them.</p>
+  </section>
+</div>
+<script>
+window.addEventListener("error", e => { const t = document.getElementById("statusText"); if (t) { t.textContent = "Page error: " + (e.message || "unknown") + " (line " + (e.lineno || "?") + ")"; document.getElementById("status").classList.add("stale"); } });
+/* ===================================================================
+   SETTINGS — paste your Google Sheet's published CSV link below.
+   In Google Sheets: File → Share → Publish to web → choose the
+   "Parts" sheet and "Comma-separated values (.csv)" → Publish → copy.
+   =================================================================== */
+const SHEET_CSV_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vQul7_jBgB_ES1HLywRYRgJZ3-Q7mRd-Dykc9azpkI-xRgX4VlGMyGGgbAOop1caL9cVVInPdmryZa-/pub?gid=556656531&single=true&output=csv";
+
+const MODELS = [
+  { id: "evora",   name: "Evora (naturally aspirated)", col: "Evora (NA)" },
+  { id: "evora-s", name: "Evora S",                     col: "Evora S" },
+  { id: "e400",    name: "Evora 400",                   col: "Evora 400" },
+  { id: "s410",    name: "Evora Sport 410",             col: "Sport 410" },
+  { id: "gt",      name: "Evora GT",                    col: "Evora GT" },
+  { id: "gt410",   name: "Evora GT410 / GT410 Sport",   col: "GT410" },
+  { id: "gt430",   name: "Evora GT430 / GT430 Sport",   col: "GT430" }
+];
+const FIT = {
+  confirmed: { label: "Confirmed", cls: "ok",   rank: 4 },
+  likely:    { label: "Likely",    cls: "lik",  rank: 3 },
+  listed:    { label: "Listed",    cls: "warn", rank: 2 },
+  unknown:   { label: "Unknown",   cls: "unk",  rank: 1 }
+};
+const STATUS = { direct: ["Direct fit", "ok"], mods: ["Fits with mods", "warn"], unverified: ["Unverified", "unk"], none: ["No known alternative", "no"] };
+const PNCHECK = { verified: ["Verified", "ok"], unverified: ["Unverified", "unk"], missing: ["Not stated", "no"] };
+
+
+/* ---------- CSV parsing (handles quotes, commas and line breaks in cells) ---------- */
+function parseCSV(text) {
+  const rows = []; let row = [], cell = "", q = false;
+  for (let i = 0; i < text.length; i++) {
+    const c = text[i];
+    if (q) {
+      if (c === '"') { if (text[i + 1] === '"') { cell += '"'; i++; } else q = false; }
+      else cell += c;
+    } else if (c === '"') q = true;
+    else if (c === ",") { row.push(cell); cell = ""; }
+    else if (c === "\n" || c === "\r") {
+      if (c === "\r" && text[i + 1] === "\n") i++;
+      row.push(cell); rows.push(row); row = []; cell = "";
+    } else cell += c;
+  }
+  if (cell !== "" || row.length) { row.push(cell); rows.push(row); }
+  return rows.filter(r => r.some(v => v.trim() !== ""));
+}
+
+/* ---------- Turn sheet rows into register entries (matched by column name) ---------- */
+const key = s => String(s || "").trim().toLowerCase();
+function toParts(text) {
+  const [header, ...data] = parseCSV(text.replace(/^﻿/, ""));
+  if (!header) return [];
+  const idx = {}; header.forEach((h, i) => idx[key(h)] = i);
+  const get = (r, name) => (r[idx[key(name)]] ?? "").trim();
+  const statusOf = v => ({ "direct fit": "direct", "fits with mods": "mods", "unverified": "unverified", "no known alternative": "none" }[key(v)] || "unverified");
+  const checkOf = v => ({ "verified": "verified", "unverified": "unverified", "not stated": "missing" }[key(v)] || "unverified");
+  return data.map(r => {
+    const fit = {};
+    MODELS.forEach(m => { const v = key(get(r, m.col)); if (FIT[v]) fit[m.id] = v; });
+    const status = statusOf(get(r, "Fit status"));
+    return {
+      cat: get(r, "Category") || "Other",
+      pn: get(r, "Lotus part number"),
+      desc: get(r, "Part description"),
+      pnCheck: checkOf(get(r, "Part number check")),
+      pnNotes: get(r, "Part number notes"),
+      alt: get(r, "Known alternative"),
+      altSub: get(r, "Alternative details"),
+      status,
+      noAltNote: get(r, "No-alternative note"),
+      fit,
+      evidence: get(r, "Owner evidence").split(/\n+/).map(s => s.trim()).filter(Boolean),
+      src: { title: get(r, "Source title") || "Source", url: get(r, "Source URL"), site: get(r, "Source site"), note: get(r, "Source date"), excerpt: /^y/i.test(get(r, "Excerpt only")) }
+    };
+  }).filter(p => p.desc);
+}
+
+/* ---------- Rendering ---------- */
+let PARTS = [];
+const esc = s => String(s).replace(/[&<>"]/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
+const safeUrl = u => /^https?:\/\//i.test(u) ? u : "#";
+const fitFor = (p, m) => p.fit[m] || "unknown";
+const pill = ([t, c]) => `<span class="pill ${c}">${esc(t)}</span>`;
+
+const sel = document.getElementById("model");
+sel.innerHTML = `<option value="">All models</option>` + MODELS.map(m => `<option value="${m.id}">${esc(m.name)}</option>`).join("");
+
+function rowHTML(p, model) {
+  const none = p.status === "none";
+  const fitCell = none
+    ? `<span class="noalt-note">${esc(p.noAltNote)}</span>`
+    : `<ul class="models">${MODELS.map(m => {
+        const f = FIT[fitFor(p, m.id)];
+        return `<li class="${m.id === model ? "sel" : ""}"><span>${esc(m.name)}</span><span class="pill ${f.cls}">${f.label}</span></li>`;
+      }).join("")}</ul>`;
+  return `
+  <tr class="${none ? "noalt" : ""}">
+    <td>${p.pn ? `<span class="pn">${esc(p.pn)}</span>` : `<span class="pn none">Not stated</span>`}</td>
+    <td><span class="name">${esc(p.desc)}</span></td>
+    <td>${pill(PNCHECK[p.pnCheck])}</td>
+    <td>${esc(p.pnNotes)}</td>
+    <td>${none ? `<span class="pill no">None known</span>` : `<span class="name">${esc(p.alt)}</span><span class="sub">${esc(p.altSub)}</span>`}</td>
+    <td>${fitCell}</td>
+    <td>${pill(STATUS[p.status])}</td>
+    <td><ul class="ev">${p.evidence.map(e => `<li>${esc(e)}</li>`).join("")}</ul></td>
+    <td><a href="${esc(safeUrl(p.src.url))}" target="_blank" rel="noopener">${esc(p.src.title)}</a><span class="sub">${esc([p.src.site, p.src.note].filter(Boolean).join(" · "))}</span>${p.src.excerpt ? `<span class="pill unk" style="margin-top:4px">Excerpt only</span>` : ""}</td>
+  </tr>`;
+}
+
+function render() {
+  const model = sel.value;
+  const level = document.querySelector('input[name=level]:checked').value;
+  const showNoAlt = document.getElementById("shownoalt").checked;
+  const min = level === "confirmed" ? 4 : level === "evidence" ? 2 : -1;
+  document.getElementById("levelset").disabled = !model;
+
+  const shown = PARTS.filter(p => p.status === "none" ? showNoAlt : (!model || FIT[fitFor(p, model)].rank >= min));
+  const tbody = document.getElementById("rows");
+  if (!shown.length) {
+    const mName = model ? MODELS.find(m => m.id === model).name : "any model";
+    tbody.innerHTML = `<tr class="empty"><td colspan="9">No parts match for the ${esc(mName)} at this level yet. Choose “Any status” to widen the list.</td></tr>`;
+  } else {
+    const cats = [...new Set(shown.map(p => p.cat))];
+    tbody.innerHTML = cats.map(c => `<tr class="cat"><td colspan="9">${esc(c)}</td></tr>` +
+      shown.filter(p => p.cat === c).map(p => rowHTML(p, model)).join("")).join("");
+  }
+  document.getElementById("count").textContent = `${shown.length} of ${PARTS.length} shown`;
+  try { localStorage.setItem("evora-filter", JSON.stringify({ model, level, showNoAlt })); } catch (e) {}
+}
+
+function setStatus(text, stale) {
+  document.getElementById("statusText").textContent = text;
+  document.getElementById("status").classList.toggle("stale", !!stale);
+}
+
+async function start() {
+  try {
+    const saved = JSON.parse(localStorage.getItem("evora-filter") || "null");
+    if (saved) {
+      if (MODELS.some(m => m.id === saved.model)) sel.value = saved.model;
+      const r = document.getElementById("lvl-" + saved.level); if (r) r.checked = true;
+      if (typeof saved.showNoAlt === "boolean") document.getElementById("shownoalt").checked = saved.showNoAlt;
+    }
+  } catch (e) {}
+  sel.addEventListener("change", render);
+  document.querySelectorAll('input[name=level]').forEach(r => r.addEventListener("change", render));
+  document.getElementById("shownoalt").addEventListener("change", render);
+
+  let live = null;
+  if (/^https:\/\/docs\.google\.com\//.test(SHEET_CSV_URL)) {
+    try {
+      const res = await fetch(SHEET_CSV_URL + (SHEET_CSV_URL.includes("?") ? "&" : "?") + "_=" + Date.now(), { cache: "no-store" });
+      if (!res.ok) throw new Error("HTTP " + res.status);
+      const text = await res.text();
+      if (/^\s*</.test(text)) throw new Error("Got a web page, not CSV");
+      live = toParts(text);
+      if (!live.length) throw new Error("No rows found");
+    } catch (e) { console.warn("Sheet load failed:", e); live = null; }
+  }
+  if (live) {
+    PARTS = live;
+    setStatus(`Live from the register sheet · loaded ${new Date().toLocaleString("en-GB", { dateStyle: "medium", timeStyle: "short" })}`);
+  } else {
+    setStatus("Couldn't reach the register sheet. Please try reloading the page.", true);
+    document.getElementById("rows").innerHTML = `<tr class="empty"><td colspan="9">The register couldn't be loaded just now. Please reload the page in a minute.</td></tr>`;
+    document.getElementById("count").textContent = "";
+    return;
+  }
+  document.getElementById("total").textContent = PARTS.length;
+  render();
+}
+start();
+</script>
+</body>
+</html>
